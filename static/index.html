@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FleetPulse vehicle telemetry and diagnostics">
+  <title>FleetPulse · Fleet overview</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="app-bar">
+    <div class="app-bar__inner">
+      <a class="product" href="/">FleetPulse <span>Operations</span></a>
+      <div class="header-status">
+        <span class="data-mode">Synthetic demo data</span>
+        <span class="connection"><i aria-hidden="true"></i><span id="connection-label">Connecting</span></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="page-heading">
+      <div>
+        <h1>Fleet overview</h1>
+        <p>Current vehicle condition and reporting status</p>
+      </div>
+      <div class="page-actions">
+        <span id="last-sync">Waiting for telemetry</span>
+        <button id="refresh" type="button">Refresh data</button>
+      </div>
+    </section>
+
+    <section class="summary" aria-label="Fleet summary">
+      <div class="summary-item"><span>Total units</span><strong id="vehicle-count">—</strong></div>
+      <div class="summary-item"><span>Reporting normally</span><strong id="healthy-count">—</strong><small id="health-rate"></small></div>
+      <div class="summary-item"><span>Average charge</span><strong id="avg-battery">—</strong></div>
+      <div class="summary-item summary-item--attention"><span>Open incidents</span><strong id="incident-count">—</strong></div>
+    </section>
+
+    <section class="workspace-grid">
+      <article class="panel fleet-panel">
+        <header class="panel-header">
+          <div><h2>Vehicles</h2><p>Select a row to inspect its temperature history</p></div>
+          <span id="unit-count" class="panel-meta">— units</span>
+        </header>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Unit</th><th>State</th><th>Battery</th><th>Temperature</th><th>Speed</th><th>Source</th><th>Last report</th></tr>
+            </thead>
+            <tbody id="vehicle-rows"><tr><td colspan="7" class="loading">Loading vehicle data…</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <aside class="panel incident-panel">
+        <header class="panel-header">
+          <div><h2>Incident queue</h2><p>Active diagnostic exceptions</p></div>
+          <span id="incident-badge" class="incident-count">0</span>
+        </header>
+        <div id="incidents" class="incident-list"><div class="loading">Evaluating rules…</div></div>
+      </aside>
+
+      <article class="panel history-panel">
+        <header class="panel-header history-header">
+          <div>
+            <h2>Temperature history</h2>
+            <p id="selected-vehicle">Select a vehicle</p>
+          </div>
+          <dl class="reading-summary">
+            <div><dt>Latest</dt><dd id="selected-temp">—</dd></div>
+            <div><dt>Threshold</dt><dd>50.0°C</dd></div>
+            <div><dt>Samples</dt><dd id="sample-count">—</dd></div>
+          </dl>
+        </header>
+        <div class="chart-wrap">
+          <canvas id="temperature-chart" role="img" aria-label="Selected vehicle temperature history"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <span>FleetPulse · Local operations demo</span>
+      <span>Refresh interval: 2 seconds</span>
+    </footer>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
