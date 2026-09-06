@@ -5,7 +5,7 @@ from __future__ import annotations
 import statistics
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from app.database import FleetRepository
@@ -17,7 +17,7 @@ RUNS = 5
 
 
 def make_rows():
-    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    start = datetime(2026, 1, 1, tzinfo=UTC)
     return [
         (
             index % 10 + 1,
@@ -38,7 +38,9 @@ def run_once(rows) -> tuple[float, int]:
         repository.seed_vehicles(VEHICLES)
         started = time.perf_counter()
         repository.insert_batch(rows)
-        incidents = diagnose_fleet(repository.list_vehicles(), now=datetime(2026, 1, 1, 0, 0, 10, tzinfo=timezone.utc))
+        incidents = diagnose_fleet(
+            repository.list_vehicles(), now=datetime(2026, 1, 1, 0, 0, 10, tzinfo=UTC)
+        )
         elapsed = time.perf_counter() - started
         assert repository.telemetry_count() == BATCH_SIZE
         return elapsed, len(incidents)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.diagnostics import parse_timestamp
@@ -42,7 +42,7 @@ def load_replay_rows(
 
     offset = None
     if align_to_now:
-        current_time = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+        current_time = (now or datetime.now(UTC)).astimezone(UTC)
         offset = current_time - max(row[4] for row in parsed)
 
     return [

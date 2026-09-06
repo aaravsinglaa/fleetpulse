@@ -75,9 +75,15 @@ The included sample is synthetic and exists to demonstrate the replay format. It
 ## Verify
 
 ```bash
+pip install -r requirements-dev.txt
+ruff format --check .
+ruff check .
 pytest -q
 python benchmark.py
 ```
+
+GitHub Actions runs the formatting, lint, and test checks on Python 3.11 and 3.12 for every
+push and pull request.
 
 ## Architecture
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -65,7 +65,7 @@ def test_ingest_telemetry_updates_vehicle_and_returns_diagnostics(tmp_path):
         "battery_pct": 72.4,
         "temperature_c": 51.2,
         "speed_kph": 48.0,
-        "timestamp": (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat(),
+        "timestamp": (datetime.now(UTC) + timedelta(seconds=1)).isoformat(),
         "source": "sensor_gateway",
     }
     with make_client(tmp_path) as client:
@@ -86,7 +86,7 @@ def test_ingest_rejects_unknown_vehicle_and_invalid_values(tmp_path):
         "battery_pct": 80,
         "temperature_c": 30,
         "speed_kph": 45,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     with make_client(tmp_path) as client:
         unknown = client.post("/telemetry", json=valid)

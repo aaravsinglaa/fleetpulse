@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 HIGH_TEMPERATURE_C = 50.0
@@ -12,7 +12,7 @@ STALE_AFTER_SECONDS = 8.0
 def parse_timestamp(value: str) -> datetime:
     """Parse an ISO-8601 timestamp and always return an aware datetime."""
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 def diagnose_vehicle(
@@ -26,7 +26,7 @@ def diagnose_vehicle(
     if not vehicle.get("timestamp"):
         return []
 
-    current_time = now or datetime.now(timezone.utc)
+    current_time = now or datetime.now(UTC)
     age_seconds = max(0.0, (current_time - parse_timestamp(vehicle["timestamp"])).total_seconds())
     incidents: list[dict[str, Any]] = []
 
@@ -65,6 +65,8 @@ def diagnose_fleet(
     vehicles: list[dict[str, Any]], *, now: datetime | None = None
 ) -> list[dict[str, Any]]:
     """Return active incidents, ordered by severity then vehicle."""
-    incidents = [incident for vehicle in vehicles for incident in diagnose_vehicle(vehicle, now=now)]
+    incidents = [
+        incident for vehicle in vehicles for incident in diagnose_vehicle(vehicle, now=now)
+    ]
     rank = {"critical": 0, "warning": 1}
     return sorted(incidents, key=lambda item: (rank[item["severity"]], item["vehicle_id"]))

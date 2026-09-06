@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -13,7 +13,7 @@ def test_replay_aligns_last_reading_to_now_and_marks_source(tmp_path):
         "1,79,31,42,2026-01-01T00:00:02+00:00\n",
         encoding="utf-8",
     )
-    now = datetime(2026, 8, 29, 12, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 8, 29, 12, 0, tzinfo=UTC)
     rows = load_replay_rows(source, now=now)
     assert rows[-1][4] == now.isoformat()
     assert rows[1][4] > rows[0][4]

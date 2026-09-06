@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 from contextlib import asynccontextmanager, suppress
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.database import FleetRepository
 from app.diagnostics import diagnose_fleet, diagnose_vehicle
-from app.simulator import TelemetrySimulator, VEHICLES
+from app.simulator import VEHICLES, TelemetrySimulator
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,7 +28,7 @@ class TelemetryInput(BaseModel):
     battery_pct: float = Field(ge=0, le=100)
     temperature_c: float = Field(ge=-50, le=150)
     speed_kph: float = Field(ge=0, le=300)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     source: Literal["external_api", "sensor_gateway", "csv_replay"] = "external_api"
 
     @field_validator("timestamp")
@@ -36,7 +36,7 @@ class TelemetryInput(BaseModel):
     def timestamp_must_include_timezone(cls, value: datetime) -> datetime:
         if value.tzinfo is None:
             raise ValueError("timestamp must include a timezone")
-        return value.astimezone(timezone.utc)
+        return value.astimezone(UTC)
 
 
 def create_app(database_path: str | Path | None = None, *, run_simulator: bool = True) -> FastAPI:

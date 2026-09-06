@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import math
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.database import FleetRepository
 
@@ -34,7 +34,7 @@ class TelemetrySimulator:
 
     def seed_demo_readings(self) -> None:
         """Create an immediately useful fleet state, including two intentional alerts."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         rows = []
         for vehicle_id, _, _ in VEHICLES:
             timestamp = now - timedelta(seconds=18 if vehicle_id == 8 else 0)
@@ -53,7 +53,7 @@ class TelemetrySimulator:
 
     def generate_tick(self) -> None:
         self.tick_number += 1
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         rows = []
         for vehicle_id, _, _ in VEHICLES:
             if vehicle_id == 8:  # Intentional communications dropout for the stale rule.
@@ -61,7 +61,9 @@ class TelemetrySimulator:
             phase = self.tick_number / 3 + vehicle_id
             battery = max(8.0, 95.0 - vehicle_id * 3.7 - self.tick_number * 0.025)
             base_temperature = 52.5 if vehicle_id == 3 else 27.5 + vehicle_id * 0.75
-            temperature = base_temperature + math.sin(phase) * 1.3 + self.random.uniform(-0.25, 0.25)
+            temperature = (
+                base_temperature + math.sin(phase) * 1.3 + self.random.uniform(-0.25, 0.25)
+            )
             speed = max(0.0, 43.0 + math.sin(phase * 0.72) * 29 + self.random.uniform(-3, 3))
             rows.append((vehicle_id, battery, temperature, speed, now, "simulator"))
         self.repository.insert_batch(rows)

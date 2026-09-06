@@ -81,9 +81,7 @@ class FleetRepository:
                 (vehicle_id, battery_pct, temperature_c, speed_kph, timestamp, source),
             )
 
-    def insert_batch(
-        self, rows: Iterable[tuple[int, float, float, float, str, str]]
-    ) -> None:
+    def insert_batch(self, rows: Iterable[tuple[int, float, float, float, str, str]]) -> None:
         with self.connect() as connection:
             connection.executemany(
                 """
@@ -97,9 +95,10 @@ class FleetRepository:
 
     def vehicle_exists(self, vehicle_id: int) -> bool:
         with self.connect() as connection:
-            return connection.execute(
-                "SELECT 1 FROM vehicles WHERE id = ?", (vehicle_id,)
-            ).fetchone() is not None
+            return (
+                connection.execute("SELECT 1 FROM vehicles WHERE id = ?", (vehicle_id,)).fetchone()
+                is not None
+            )
 
     def list_vehicles(self) -> list[dict[str, Any]]:
         with self.connect() as connection:
