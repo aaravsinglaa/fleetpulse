@@ -117,3 +117,8 @@ The repeatable benchmark documented in [`BENCHMARK.md`](BENCHMARK.md) inserted 1
 Suggested resume bullet:
 
 > Built a FastAPI/SQLite fleet telemetry system with simulator, CSV replay, validated gateway ingestion, indexed history, and automated thermal/staleness diagnostics; processed and evaluated a 10,000-reading batch at ~1.03M readings/second in a repeatable local benchmark.
+
+## Contributing and license
+
+Focused fixes and improvements are welcome; see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the local
+workflow and project boundaries. FleetPulse is available under the [MIT License](LICENSE).
