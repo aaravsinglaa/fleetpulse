@@ -1,8 +1,12 @@
 # FleetPulse
 
+[![CI](https://github.com/aaravsinglaa/fleetpulse/actions/workflows/ci.yml/badge.svg)](https://github.com/aaravsinglaa/fleetpulse/actions/workflows/ci.yml)
+
 FleetPulse is a small fleet-operations application built with FastAPI, SQLite, and plain HTML/CSS/JavaScript. It collects battery level, temperature, speed, timestamp, and data-source information for 10 electric vehicles. Diagnostic rules flag temperatures above 50°C and vehicles that have not reported for more than eight seconds.
 
 The project is transparent about its data. A built-in simulator makes the demo immediately runnable, while a validated ingestion endpoint and CSV replay command show how recorded or gateway data enters the same pipeline.
+
+![FleetPulse dashboard showing vehicle telemetry, active incidents, and temperature history](docs/dashboard.png)
 
 ## Features
 
@@ -94,6 +98,8 @@ GitHub Actions runs the formatting, lint, and test checks on Python 3.11 and 3.1
 push and pull request.
 
 ## Architecture
+
+![FleetPulse architecture diagram](docs/architecture.svg)
 
 ```text
 Simulator ─────────┐

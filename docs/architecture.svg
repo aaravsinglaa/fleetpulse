@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430" role="img" aria-labelledby="title description">
+  <title id="title">FleetPulse architecture</title>
+  <desc id="description">Telemetry from the simulator, CSV replay, or a gateway flows into SQLite, then through the FastAPI API and diagnostic rules to the operations dashboard.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#667085"/>
+    </marker>
+    <style>
+      .label { font: 600 18px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #182230; }
+      .detail { font: 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #667085; }
+      .eyebrow { font: 700 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #2457a6; letter-spacing: 1px; }
+      .box { fill: #fff; stroke: #cfd4dc; stroke-width: 2; rx: 10; }
+      .flow { fill: none; stroke: #667085; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="430" rx="16" fill="#f6f7f9"/>
+
+  <text x="55" y="45" class="eyebrow">TELEMETRY SOURCES</text>
+  <rect x="45" y="70" width="235" height="78" class="box"/>
+  <text x="70" y="104" class="label">Fleet simulator</text>
+  <text x="70" y="127" class="detail">10 vehicles · 2-second batches</text>
+  <rect x="45" y="175" width="235" height="78" class="box"/>
+  <text x="70" y="209" class="label">CSV replay</text>
+  <text x="70" y="232" class="detail">Recorded data with UTC alignment</text>
+  <rect x="45" y="280" width="235" height="78" class="box"/>
+  <text x="70" y="314" class="label">Gateway POST</text>
+  <text x="70" y="337" class="detail">Validated external telemetry</text>
+
+  <path d="M280 109 H340 V214 H385" class="flow"/>
+  <path d="M280 214 H385" class="flow"/>
+  <path d="M280 319 H340 V214 H385" class="flow"/>
+
+  <rect x="395" y="155" width="245" height="118" class="box"/>
+  <text x="420" y="195" class="eyebrow">PERSISTENCE</text>
+  <text x="420" y="226" class="label">SQLite telemetry store</text>
+  <text x="420" y="250" class="detail">WAL · indexed history · retention</text>
+
+  <path d="M640 214 H705" class="flow"/>
+
+  <rect x="715" y="95" width="220" height="105" class="box"/>
+  <text x="740" y="134" class="eyebrow">SERVICE</text>
+  <text x="740" y="165" class="label">FastAPI endpoints</text>
+  <text x="740" y="187" class="detail">Fleet, detail, health, incidents</text>
+  <rect x="715" y="230" width="220" height="105" class="box"/>
+  <text x="740" y="269" class="eyebrow">DIAGNOSTICS</text>
+  <text x="740" y="300" class="label">Rule evaluation</text>
+  <text x="740" y="322" class="detail">Thermal and stale-signal alerts</text>
+  <path d="M825 200 V220" class="flow"/>
+
+  <path d="M935 147 H995 V214 H1025" class="flow"/>
+  <path d="M935 282 H995 V214" class="flow"/>
+
+  <rect x="1035" y="155" width="130" height="118" class="box"/>
+  <text x="1057" y="195" class="eyebrow">CLIENT</text>
+  <text x="1057" y="226" class="label">Dashboard</text>
+  <text x="1057" y="250" class="detail">2-second polling</text>
+
+  <text x="45" y="400" class="detail">One data path supports the demo simulator, recorded datasets, and real gateway submissions.</text>
+</svg>
