@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 from contextlib import asynccontextmanager, suppress
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -19,6 +19,23 @@ from app.diagnostics import diagnose_fleet, diagnose_vehicle
 from app.simulator import VEHICLES, TelemetrySimulator
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_RETENTION_HOURS = 24 * 7
+
+
+def get_retention_hours(value: float | None = None) -> float:
+    """Read and validate the telemetry retention period."""
+    raw_value = (
+        value
+        if value is not None
+        else os.getenv("FLEETPULSE_RETENTION_HOURS", str(DEFAULT_RETENTION_HOURS))
+    )
+    try:
+        hours = float(raw_value)
+    except (TypeError, ValueError) as error:
+        raise ValueError("FLEETPULSE_RETENTION_HOURS must be a number") from error
+    if hours <= 0:
+        raise ValueError("FLEETPULSE_RETENTION_HOURS must be greater than zero")
+    return hours
 
 
 class TelemetryInput(BaseModel):
@@ -39,15 +56,24 @@ class TelemetryInput(BaseModel):
         return value.astimezone(UTC)
 
 
-def create_app(database_path: str | Path | None = None, *, run_simulator: bool = True) -> FastAPI:
+def create_app(
+    database_path: str | Path | None = None,
+    *,
+    run_simulator: bool = True,
+    retention_hours: float | None = None,
+) -> FastAPI:
     path = database_path or os.getenv("FLEETPULSE_DB", BASE_DIR / "fleetpulse.db")
     repository = FleetRepository(path)
-    simulator = TelemetrySimulator(repository)
+    retention = get_retention_hours(retention_hours)
+    simulator = TelemetrySimulator(repository, retention_hours=retention)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         repository.initialize()
         repository.seed_vehicles(VEHICLES)
+        repository.prune_readings_older_than(
+            (datetime.now(UTC) - timedelta(hours=retention)).isoformat()
+        )
         if repository.telemetry_count() == 0:
             simulator.seed_demo_readings()
         task = asyncio.create_task(simulator.run()) if run_simulator else None
@@ -66,6 +92,7 @@ def create_app(database_path: str | Path | None = None, *, run_simulator: bool =
         lifespan=lifespan,
     )
     application.state.repository = repository
+    application.state.retention_hours = retention
     application.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
     @application.get("/", include_in_schema=False)

@@ -29,6 +29,14 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000). API documentation is availa
 
 The application creates `fleetpulse.db` on first launch. `Comet-03` intentionally runs hot and `Halo-08` intentionally stops reporting so both diagnostic paths stay visible. The interface labels this feed as synthetic demo data.
 
+Telemetry history is retained for seven days by default. FleetPulse removes expired history at
+startup and once per hour while the simulator runs, while preserving every vehicle's latest reading.
+Set a different positive duration with `FLEETPULSE_RETENTION_HOURS`, for example:
+
+```bash
+FLEETPULSE_RETENTION_HOURS=24 uvicorn app.main:app --reload
+```
+
 ## API
 
 | Method | Route | Purpose |

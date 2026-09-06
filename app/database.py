@@ -61,6 +61,30 @@ class FleetRepository:
         with self.connect() as connection:
             return int(connection.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0])
 
+    def prune_readings_older_than(self, cutoff: str) -> int:
+        """Delete expired history while retaining each vehicle's newest reading."""
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                DELETE FROM telemetry
+                WHERE datetime(timestamp) < datetime(?)
+                  AND EXISTS (
+                      SELECT 1
+                      FROM telemetry AS newer
+                      WHERE newer.vehicle_id = telemetry.vehicle_id
+                        AND (
+                            datetime(newer.timestamp) > datetime(telemetry.timestamp)
+                            OR (
+                                datetime(newer.timestamp) = datetime(telemetry.timestamp)
+                                AND newer.id > telemetry.id
+                            )
+                        )
+                  )
+                """,
+                (cutoff,),
+            )
+            return cursor.rowcount
+
     def insert_reading(
         self,
         vehicle_id: int,

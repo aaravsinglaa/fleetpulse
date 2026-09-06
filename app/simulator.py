@@ -26,9 +26,18 @@ VEHICLES = [
 class TelemetrySimulator:
     """Writes a reading for each reporting vehicle on every tick."""
 
-    def __init__(self, repository: FleetRepository, interval_seconds: float = 2.0, seed: int = 42):
+    def __init__(
+        self,
+        repository: FleetRepository,
+        interval_seconds: float = 2.0,
+        seed: int = 42,
+        retention_hours: float = 24 * 7,
+        cleanup_every_ticks: int | None = None,
+    ):
         self.repository = repository
         self.interval_seconds = interval_seconds
+        self.retention_hours = retention_hours
+        self.cleanup_every_ticks = cleanup_every_ticks or max(1, round(3600 / interval_seconds))
         self.random = random.Random(seed)
         self.tick_number = 0
 
@@ -67,6 +76,9 @@ class TelemetrySimulator:
             speed = max(0.0, 43.0 + math.sin(phase * 0.72) * 29 + self.random.uniform(-3, 3))
             rows.append((vehicle_id, battery, temperature, speed, now, "simulator"))
         self.repository.insert_batch(rows)
+        if self.tick_number % self.cleanup_every_ticks == 0:
+            cutoff = datetime.now(UTC) - timedelta(hours=self.retention_hours)
+            self.repository.prune_readings_older_than(cutoff.isoformat())
 
     async def run(self) -> None:
         while True:
