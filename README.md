@@ -45,7 +45,7 @@ FLEETPULSE_RETENTION_HOURS=24 uvicorn app.main:app --reload
 | `GET` | `/vehicles/{id}` | Metadata and recent telemetry history; accepts `?history=1..200` |
 | `GET` | `/incidents` | Current high-temperature and stale-telemetry exceptions |
 | `POST` | `/telemetry` | Submit one validated reading from an external client |
-| `GET` | `/health` | Basic service health check |
+| `GET` | `/health` | Database connectivity, simulator state, reading count, and retention |
 
 Example gateway submission:
 

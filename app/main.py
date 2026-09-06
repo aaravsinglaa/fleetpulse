@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import os
+import sqlite3
 from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
@@ -77,6 +78,7 @@ def create_app(
         if repository.telemetry_count() == 0:
             simulator.seed_demo_readings()
         task = asyncio.create_task(simulator.run()) if run_simulator else None
+        application.state.simulator_task = task
         try:
             yield
         finally:
@@ -99,9 +101,32 @@ def create_app(
     def dashboard() -> FileResponse:
         return FileResponse(BASE_DIR / "static" / "index.html")
 
+    def simulator_status(request: Request) -> str:
+        if not run_simulator:
+            return "disabled"
+        task = getattr(request.app.state, "simulator_task", None)
+        return "running" if task is not None and not task.done() else "stopped"
+
     @application.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health(request: Request):
+        try:
+            telemetry_readings = request.app.state.repository.telemetry_count()
+        except sqlite3.Error:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "degraded",
+                    "database": "unavailable",
+                    "simulator": simulator_status(request),
+                },
+            )
+        return {
+            "status": "ok",
+            "database": "connected",
+            "simulator": simulator_status(request),
+            "telemetry_readings": telemetry_readings,
+            "retention_hours": request.app.state.retention_hours,
+        }
 
     @application.get("/vehicles")
     def list_vehicles(request: Request) -> list[dict]:

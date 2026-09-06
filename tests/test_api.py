@@ -1,3 +1,4 @@
+import sqlite3
 from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
@@ -56,7 +57,29 @@ def test_health_endpoint(tmp_path):
     with make_client(tmp_path) as client:
         response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {
+        "status": "ok",
+        "database": "connected",
+        "simulator": "disabled",
+        "telemetry_readings": 10,
+        "retention_hours": 168.0,
+    }
+
+
+def test_health_endpoint_reports_database_failure(tmp_path, monkeypatch):
+    with make_client(tmp_path) as client:
+        monkeypatch.setattr(
+            client.app.state.repository,
+            "telemetry_count",
+            lambda: (_ for _ in ()).throw(sqlite3.OperationalError("database unavailable")),
+        )
+        response = client.get("/health")
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "degraded",
+        "database": "unavailable",
+        "simulator": "disabled",
+    }
 
 
 def test_ingest_telemetry_updates_vehicle_and_returns_diagnostics(tmp_path):
