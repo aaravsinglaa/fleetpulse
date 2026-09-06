@@ -33,3 +33,8 @@ def test_vehicle_can_trigger_both_rules():
     timestamp = (NOW - timedelta(seconds=20)).isoformat()
     incidents = diagnose_vehicle(vehicle(temperature_c=55, timestamp=timestamp), now=NOW)
     assert {incident["type"] for incident in incidents} == {"high_temperature", "stale_telemetry"}
+
+
+def test_future_timestamp_is_not_reported_as_stale():
+    timestamp = (NOW + timedelta(seconds=30)).isoformat()
+    assert diagnose_vehicle(vehicle(timestamp=timestamp), now=NOW) == []

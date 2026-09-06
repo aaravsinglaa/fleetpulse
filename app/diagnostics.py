@@ -10,9 +10,10 @@ STALE_AFTER_SECONDS = 8.0
 
 
 def parse_timestamp(value: str) -> datetime:
-    """Parse an ISO-8601 timestamp and always return an aware datetime."""
+    """Parse an ISO-8601 timestamp and normalize it to UTC."""
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+    aware = parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+    return aware.astimezone(UTC)
 
 
 def diagnose_vehicle(

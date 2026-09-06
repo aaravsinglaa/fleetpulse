@@ -116,3 +116,66 @@ def test_ingest_rejects_unknown_vehicle_and_invalid_values(tmp_path):
         invalid = client.post("/telemetry", json={**valid, "vehicle_id": 1, "battery_pct": 120})
     assert unknown.status_code == 404
     assert invalid.status_code == 422
+
+
+def test_delayed_reading_does_not_replace_newest_vehicle_state(tmp_path):
+    newer_time = datetime.now(UTC) + timedelta(hours=1)
+    base_payload = {
+        "vehicle_id": 1,
+        "battery_pct": 77,
+        "temperature_c": 36,
+        "speed_kph": 50,
+        "source": "sensor_gateway",
+    }
+    with make_client(tmp_path) as client:
+        client.post("/telemetry", json={**base_payload, "timestamp": newer_time.isoformat()})
+        client.post(
+            "/telemetry",
+            json={
+                **base_payload,
+                "battery_pct": 25,
+                "timestamp": (newer_time - timedelta(minutes=5)).isoformat(),
+            },
+        )
+        vehicle = client.get("/vehicles/1?history=2").json()
+
+    assert vehicle["telemetry"][0]["battery_pct"] == 77
+    assert vehicle["telemetry"][1]["battery_pct"] == 25
+
+
+def test_fresh_ingestion_clears_stale_vehicle_incident(tmp_path):
+    payload = {
+        "vehicle_id": 8,
+        "battery_pct": 64,
+        "temperature_c": 35,
+        "speed_kph": 38,
+        "timestamp": datetime.now(UTC).isoformat(),
+        "source": "sensor_gateway",
+    }
+    with make_client(tmp_path) as client:
+        initial = client.get("/incidents").json()
+        accepted = client.post("/telemetry", json=payload)
+        updated = client.get("/incidents").json()
+
+    assert any(item["vehicle_id"] == 8 and item["type"] == "stale_telemetry" for item in initial)
+    assert accepted.status_code == 201
+    assert not any(
+        item["vehicle_id"] == 8 and item["type"] == "stale_telemetry" for item in updated
+    )
+
+
+def test_ingestion_requires_timezone_and_normalizes_to_utc(tmp_path):
+    payload = {
+        "vehicle_id": 1,
+        "battery_pct": 80,
+        "temperature_c": 30,
+        "speed_kph": 40,
+        "timestamp": "2026-09-06T08:00:00-04:00",
+    }
+    with make_client(tmp_path) as client:
+        accepted = client.post("/telemetry", json=payload)
+        rejected = client.post("/telemetry", json={**payload, "timestamp": "2026-09-06T08:00:00"})
+
+    assert accepted.status_code == 201
+    assert accepted.json()["reading"]["timestamp"] == "2026-09-06T12:00:00+00:00"
+    assert rejected.status_code == 422

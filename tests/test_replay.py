@@ -25,3 +25,16 @@ def test_replay_requires_all_columns(tmp_path):
     source.write_text("vehicle_id,battery_pct\n1,80\n", encoding="utf-8")
     with pytest.raises(ValueError, match="missing columns"):
         load_replay_rows(source)
+
+
+def test_replay_normalizes_offset_timestamps_to_utc(tmp_path):
+    source = tmp_path / "offset.csv"
+    source.write_text(
+        "vehicle_id,battery_pct,temperature_c,speed_kph,timestamp\n"
+        "1,80,30,40,2026-09-06T08:00:00-04:00\n",
+        encoding="utf-8",
+    )
+
+    rows = load_replay_rows(source, align_to_now=False)
+
+    assert rows[0][4] == "2026-09-06T12:00:00+00:00"
